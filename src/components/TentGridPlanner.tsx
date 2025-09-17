@@ -28,17 +28,91 @@ export const TentGridPlanner = () => {
     { x: tentPixels, y: tentPixels, label: "Tent 4" }
   ];
 
-  // Optimal table positions (centered in each tent with clearance)
-  const tables = tents.map((tent, index) => ({
-    x: tent.x + tentPixels / 2,
-    y: tent.y + tentPixels / 2,
-    id: index + 1
-  }));
+  // Calculate optimal positions for 13 tables in 40x40 space
+  const NUM_TABLES = 13;
+  const CLEARANCE = 2.5; // Minimum clearance between table edges
+  const POLE_CLEARANCE = 4; // Clearance needed from poles
+  
+  const generateTablePositions = () => {
+    const positions = [];
+    const tableSpacing = TABLE_DIAMETER + CLEARANCE;
+    
+    // Try different arrangements to fit 13 tables optimally
+    // Arrangement: 4x3 grid + 1 center table
+    const gridPositions = [
+      // Row 1
+      { x: 1 * tableSpacing, y: 1 * tableSpacing },
+      { x: 2 * tableSpacing, y: 1 * tableSpacing },
+      { x: 3 * tableSpacing, y: 1 * tableSpacing },
+      { x: 4 * tableSpacing, y: 1 * tableSpacing },
+      
+      // Row 2 (offset for better fit)
+      { x: 0.5 * tableSpacing, y: 2 * tableSpacing },
+      { x: 1.5 * tableSpacing, y: 2 * tableSpacing },
+      { x: 2.5 * tableSpacing, y: 2 * tableSpacing },
+      { x: 3.5 * tableSpacing, y: 2 * tableSpacing },
+      { x: 4.5 * tableSpacing, y: 2 * tableSpacing },
+      
+      // Row 3
+      { x: 1 * tableSpacing, y: 3 * tableSpacing },
+      { x: 2 * tableSpacing, y: 3 * tableSpacing },
+      { x: 3 * tableSpacing, y: 3 * tableSpacing },
+      { x: 4 * tableSpacing, y: 3 * tableSpacing },
+    ];
+    
+    // Convert to pixel positions and check bounds
+    return gridPositions.slice(0, NUM_TABLES).map((pos, index) => {
+      const pixelX = pos.x * SCALE;
+      const pixelY = pos.y * SCALE;
+      
+      // Ensure tables stay within bounds
+      const clampedX = Math.max(tableRadius + 10, Math.min(totalWidth - tableRadius - 10, pixelX));
+      const clampedY = Math.max(tableRadius + 10, Math.min(totalHeight - tableRadius - 10, pixelY));
+      
+      return {
+        x: clampedX,
+        y: clampedY,
+        id: index + 1
+      };
+    });
+  };
 
-  // Check if tables fit with clearance
-  const clearanceNeeded = 3; // 3 feet clearance around table
-  const totalTableSpace = TABLE_DIAMETER + (clearanceNeeded * 2);
-  const tablesFit = totalTableSpace <= TENT_SIZE;
+  const tables = generateTablePositions();
+
+  // Check if all tables fit properly
+  const checkTablesFit = () => {
+    // Check if tables are within bounds
+    const withinBounds = tables.every(table => 
+      table.x - tableRadius >= 0 && 
+      table.x + tableRadius <= totalWidth &&
+      table.y - tableRadius >= 0 && 
+      table.y + tableRadius <= totalHeight
+    );
+    
+    // Check minimum distance from poles
+    const clearFromPoles = tables.every(table =>
+      poles.every(pole => {
+        const distance = Math.sqrt(Math.pow(table.x - pole.x, 2) + Math.pow(table.y - pole.y, 2));
+        return distance >= tableRadius + POLE_CLEARANCE * SCALE;
+      })
+    );
+    
+    // Check table-to-table spacing
+    const adequateSpacing = tables.every((table, i) =>
+      tables.every((otherTable, j) => {
+        if (i === j) return true;
+        const distance = Math.sqrt(Math.pow(table.x - otherTable.x, 2) + Math.pow(table.y - otherTable.y, 2));
+        return distance >= (tableRadius * 2) + (CLEARANCE * SCALE);
+      })
+    );
+    
+    return withinBounds && clearFromPoles && adequateSpacing;
+  };
+
+  const tablesFit = checkTablesFit();
+  const totalTableArea = NUM_TABLES * Math.PI * Math.pow(TABLE_DIAMETER/2, 2);
+  const totalTentArea = 40 * 40;
+  const areaUtilization = (totalTableArea / totalTentArea) * 100;
 
   return (
     <div className="space-y-6">
@@ -224,39 +298,44 @@ export const TentGridPlanner = () => {
             </div>
 
             <div className="border-t pt-4">
-              <h4 className="font-medium text-sm text-muted-foreground mb-2">TABLE FIT ANALYSIS</h4>
+              <h4 className="font-medium text-sm text-muted-foreground mb-2">TABLE FIT ANALYSIS (13 TABLES)</h4>
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span className="text-sm">Table diameter:</span>
                   <Badge variant="outline">72 inches (6 ft)</Badge>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm">Required clearance:</span>
-                  <Badge variant="outline">3 ft minimum</Badge>
+                  <span className="text-sm">Number of tables:</span>
+                  <Badge variant="outline">{NUM_TABLES} tables</Badge>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm">Total space needed:</span>
-                  <Badge variant="outline">12 ft × 12 ft</Badge>
+                  <span className="text-sm">Min table clearance:</span>
+                  <Badge variant="outline">{CLEARANCE} ft minimum</Badge>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm">Pole clearance:</span>
+                  <Badge variant="outline">{POLE_CLEARANCE} ft minimum</Badge>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm">Area utilization:</span>
+                  <Badge variant="outline">{areaUtilization.toFixed(1)}%</Badge>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-medium">Fit status:</span>
                   <Badge variant={tablesFit ? "default" : "destructive"} className="font-medium">
-                    {tablesFit ? "✓ FITS COMFORTABLY" : "✗ INSUFFICIENT SPACE"}
+                    {tablesFit ? "✓ ALL TABLES FIT" : "✗ LAYOUT ISSUES"}
                   </Badge>
                 </div>
-                {tablesFit && (
-                  <div className="flex justify-between">
-                    <span className="text-sm">Extra clearance:</span>
-                    <Badge variant="secondary">{TENT_SIZE - totalTableSpace} ft per side</Badge>
-                  </div>
-                )}
               </div>
             </div>
 
             <div className="bg-muted p-3 rounded-lg">
               <p className="text-sm text-muted-foreground">
-                <span className="font-medium">Recommendation:</span> Each 20×20ft tent can comfortably accommodate 
-                one 72" round table with {TENT_SIZE - totalTableSpace}ft of clearance on all sides.
+                <span className="font-medium">Analysis:</span> The 40×40ft tent configuration 
+                {tablesFit 
+                  ? `can accommodate all ${NUM_TABLES} tables with proper spacing and pole clearance.`
+                  : `has challenges fitting all ${NUM_TABLES} tables with adequate spacing.`
+                }
               </p>
             </div>
           </CardContent>
