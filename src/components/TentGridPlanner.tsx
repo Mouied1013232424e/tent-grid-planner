@@ -157,12 +157,7 @@ export const TentGridPlanner = () => {
         {/* Diagram */}
         <Card className="col-span-1">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              Tent Layout Diagram
-              <Badge variant={tablesFit ? "default" : "destructive"}>
-                {tablesFit ? "✓ Tables Fit" : "✗ Tables Don't Fit"}
-              </Badge>
-            </CardTitle>
+            <CardTitle>Tent Layout Planner</CardTitle>
             <CardDescription>
               4 × 20×20ft tents arranged in 40×40ft configuration
             </CardDescription>
@@ -184,37 +179,17 @@ export const TentGridPlanner = () => {
                 </defs>
                 <rect x={-10} y={-10} width={totalWidth + 20} height={totalHeight + 20} fill="url(#grid)" />
                 
-                {/* Tent boundaries */}
-                {tents.map((tent, index) => (
-                  <g key={index}>
-                    <rect
-                      x={tent.x}
-                      y={tent.y}
-                      width={tentPixels}
-                      height={tentPixels}
-                      fill="rgba(59, 130, 246, 0.1)"
-                      stroke="#3b82f6"
-                      strokeWidth="2"
-                      strokeDasharray="5,5"
-                    />
-                    <text
-                      x={tent.x + tentPixels / 2}
-                      y={tent.y + 20}
-                      textAnchor="middle"
-                      className="fill-primary font-semibold text-sm"
-                    >
-                      {tent.label}
-                    </text>
-                    <text
-                      x={tent.x + tentPixels / 2}
-                      y={tent.y + 35}
-                      textAnchor="middle"
-                      className="fill-muted-foreground text-xs"
-                    >
-                      20×20ft
-                    </text>
-                  </g>
-                ))}
+                {/* Overall tent boundary */}
+                <rect
+                  x={0}
+                  y={0}
+                  width={totalWidth}
+                  height={totalHeight}
+                  fill="rgba(59, 130, 246, 0.05)"
+                  stroke="#3b82f6"
+                  strokeWidth="2"
+                  strokeDasharray="8,4"
+                />
 
                 {/* Poles */}
                 {poles.map((pole, index) => (
@@ -331,45 +306,9 @@ export const TentGridPlanner = () => {
               </div>
             </div>
 
-            <div className="border-t pt-4">
-              <h4 className="font-medium text-sm text-muted-foreground mb-2">TABLE FIT ANALYSIS (13 TABLES)</h4>
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-sm">Table diameter:</span>
-                  <Badge variant="outline">72 inches (6 ft)</Badge>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm">Number of tables:</span>
-                  <Badge variant="outline">{NUM_TABLES} tables</Badge>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm">Min table clearance:</span>
-                  <Badge variant="outline">{CLEARANCE} ft minimum</Badge>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm">Pole clearance:</span>
-                  <Badge variant="outline">{POLE_CLEARANCE} ft minimum</Badge>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm">Area utilization:</span>
-                  <Badge variant="outline">{areaUtilization.toFixed(1)}%</Badge>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium">Fit status:</span>
-                  <Badge variant={tablesFit ? "default" : "destructive"} className="font-medium">
-                    {tablesFit ? "✓ ALL TABLES FIT" : "✗ LAYOUT ISSUES"}
-                  </Badge>
-                </div>
-              </div>
-            </div>
-
             <div className="bg-muted p-3 rounded-lg">
               <p className="text-sm text-muted-foreground">
-                <span className="font-medium">Analysis:</span> The 40×40ft tent configuration 
-                {tablesFit 
-                  ? `can accommodate all ${NUM_TABLES} tables with proper spacing and pole clearance.`
-                  : `has challenges fitting all ${NUM_TABLES} tables with adequate spacing.`
-                }
+                <span className="font-medium">Layout Info:</span> 40×40ft tent configuration with {NUM_TABLES} draggable 72" round tables. Drag tables to arrange as needed.
               </p>
             </div>
           </CardContent>
