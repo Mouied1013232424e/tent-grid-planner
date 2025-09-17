@@ -1,5 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useState } from "react";
 
 export const TentGridPlanner = () => {
   const TENT_SIZE = 20; // 20x20 feet
@@ -79,10 +80,46 @@ export const TentGridPlanner = () => {
 
   const tables = generateTablePositions();
 
+  // State for draggable table positions
+  const [tablePositions, setTablePositions] = useState(tables);
+  const [draggedTable, setDraggedTable] = useState<number | null>(null);
+
+  // Drag handlers
+  const handleMouseDown = (tableId: number, event: React.MouseEvent) => {
+    event.preventDefault();
+    setDraggedTable(tableId);
+  };
+
+  const handleMouseMove = (event: React.MouseEvent) => {
+    if (draggedTable === null) return;
+    
+    const svg = event.currentTarget as SVGSVGElement;
+    const rect = svg.getBoundingClientRect();
+    const scaleX = (totalWidth + 40) / rect.width;
+    const scaleY = (totalHeight + 40) / rect.height;
+    
+    const x = (event.clientX - rect.left) * scaleX - 20;
+    const y = (event.clientY - rect.top) * scaleY - 20;
+    
+    // Keep tables within bounds
+    const clampedX = Math.max(tableRadius, Math.min(totalWidth - tableRadius, x));
+    const clampedY = Math.max(tableRadius, Math.min(totalHeight - tableRadius, y));
+    
+    setTablePositions(prev => prev.map(table => 
+      table.id === draggedTable 
+        ? { ...table, x: clampedX, y: clampedY }
+        : table
+    ));
+  };
+
+  const handleMouseUp = () => {
+    setDraggedTable(null);
+  };
+
   // Check if all tables fit properly
   const checkTablesFit = () => {
     // Check if tables are within bounds
-    const withinBounds = tables.every(table => 
+    const withinBounds = tablePositions.every(table => 
       table.x - tableRadius >= 0 && 
       table.x + tableRadius <= totalWidth &&
       table.y - tableRadius >= 0 && 
@@ -90,7 +127,7 @@ export const TentGridPlanner = () => {
     );
     
     // Check minimum distance from poles
-    const clearFromPoles = tables.every(table =>
+    const clearFromPoles = tablePositions.every(table =>
       poles.every(pole => {
         const distance = Math.sqrt(Math.pow(table.x - pole.x, 2) + Math.pow(table.y - pole.y, 2));
         return distance >= tableRadius + POLE_CLEARANCE * SCALE;
@@ -98,8 +135,8 @@ export const TentGridPlanner = () => {
     );
     
     // Check table-to-table spacing
-    const adequateSpacing = tables.every((table, i) =>
-      tables.every((otherTable, j) => {
+    const adequateSpacing = tablePositions.every((table, i) =>
+      tablePositions.every((otherTable, j) => {
         if (i === j) return true;
         const distance = Math.sqrt(Math.pow(table.x - otherTable.x, 2) + Math.pow(table.y - otherTable.y, 2));
         return distance >= (tableRadius * 2) + (CLEARANCE * SCALE);
@@ -132,10 +169,13 @@ export const TentGridPlanner = () => {
           </CardHeader>
           <CardContent>
             <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-lg border">
-              <svg 
-                viewBox={`-20 -20 ${totalWidth + 40} ${totalHeight + 40}`}
-                className="w-full h-auto max-w-lg mx-auto"
-              >
+                <svg 
+                  viewBox={`-20 -20 ${totalWidth + 40} ${totalHeight + 40}`}
+                  className="w-full h-auto max-w-lg mx-auto cursor-crosshair"
+                  onMouseMove={handleMouseMove}
+                  onMouseUp={handleMouseUp}
+                  onMouseLeave={handleMouseUp}
+                >
                 {/* Grid lines for measurement */}
                 <defs>
                   <pattern id="grid" width={SCALE * 5} height={SCALE * 5} patternUnits="userSpaceOnUse">
@@ -200,7 +240,7 @@ export const TentGridPlanner = () => {
                 ))}
 
                 {/* Round tables */}
-                {tables.map((table) => (
+                {tablePositions.map((table) => (
                   <g key={table.id}>
                     <circle
                       cx={table.x}
@@ -209,23 +249,17 @@ export const TentGridPlanner = () => {
                       fill="rgba(34, 197, 94, 0.2)"
                       stroke="#22c55e"
                       strokeWidth="2"
+                      className="cursor-pointer hover:fill-green-300 hover:stroke-green-600 transition-colors"
+                      onMouseDown={(e) => handleMouseDown(table.id, e)}
                     />
                     <text
                       x={table.x}
                       y={table.y}
                       textAnchor="middle"
-                      className="fill-green-700 dark:fill-green-300 font-medium text-xs"
+                      className="fill-green-700 dark:fill-green-300 font-medium text-xs pointer-events-none"
                       dy="0.35em"
                     >
-                      Table {table.id}
-                    </text>
-                    <text
-                      x={table.x}
-                      y={table.y + 12}
-                      textAnchor="middle"
-                      className="fill-green-600 dark:fill-green-400 text-xs"
-                    >
-                      72" ⌀
+                      {table.id}
                     </text>
                   </g>
                 ))}
