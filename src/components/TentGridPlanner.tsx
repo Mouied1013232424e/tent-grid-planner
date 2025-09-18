@@ -74,6 +74,11 @@ export const TentGridPlanner = () => {
     { x: 460, y: 80, id: 6, type: 'large' as const },
     { x: 540, y: 80, id: 7, type: 'large' as const },
     { x: 620, y: 80, id: 8, type: 'large' as const },
+    // Added four more large tables for a total of 12
+    { x: 100, y: 128, id: 9, type: 'large' as const },
+    { x: 220, y: 128, id: 10, type: 'large' as const },
+    { x: 340, y: 128, id: 11, type: 'large' as const },
+    { x: 460, y: 128, id: 12, type: 'large' as const },
   ];
 
   // Initial small table positions for 20x80 - 6 cocktail tables
@@ -84,6 +89,11 @@ export const TentGridPlanner = () => {
     { x: 400, y: 40, id: 4, type: 'small' as const },
     { x: 500, y: 40, id: 5, type: 'small' as const },
     { x: 600, y: 40, id: 6, type: 'small' as const },
+    // Added four more cocktail tables for a total of 10
+    { x: 50, y: 24, id: 7, type: 'small' as const },
+    { x: 150, y: 24, id: 8, type: 'small' as const },
+    { x: 350, y: 24, id: 9, type: 'small' as const },
+    { x: 550, y: 24, id: 10, type: 'small' as const },
   ];
 
   // State
@@ -299,7 +309,7 @@ export const TentGridPlanner = () => {
             <svg 
               viewBox={`-20 -20 ${totalWidth2080 + 40} ${totalHeight2080 + 40}`}
               className="w-full h-auto cursor-crosshair"
-              style={{ minHeight: '300px' }}
+              style={{ minHeight: '480px' }}
               onMouseMove={(e) => handleMouseMove(e, '2080')}
               onMouseUp={handleMouseUp}
               onMouseLeave={handleMouseUp}
