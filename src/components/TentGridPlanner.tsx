@@ -3,313 +3,313 @@ import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
 
 export const TentGridPlanner = () => {
-  const TENT_SIZE = 20; // 20x20 feet
   const SCALE = 8; // pixels per foot for visualization
   const POLE_RADIUS = 3;
   const TABLE_DIAMETER = 6; // 72 inches = 6 feet
+  const SMALL_TABLE_DIAMETER = 32 / 12; // 32 inches = 2.67 feet
 
-  // Calculate dimensions in pixels
-  const tentPixels = TENT_SIZE * SCALE;
-  const totalWidth = tentPixels * 2;
-  const totalHeight = tentPixels * 2;
+  // 40x40 configuration
+  const totalWidth4040 = 40 * SCALE;
+  const totalHeight4040 = 40 * SCALE;
   const tableRadius = (TABLE_DIAMETER * SCALE) / 2;
+  const smallTableRadius = (SMALL_TABLE_DIAMETER * SCALE) / 2;
 
-  // Pole positions (3x3 grid for 2x2 tent arrangement)
-  const poles = [
-    { x: 0, y: 0 }, { x: tentPixels, y: 0 }, { x: totalWidth, y: 0 },
-    { x: 0, y: tentPixels }, { x: tentPixels, y: tentPixels }, { x: totalWidth, y: tentPixels },
-    { x: 0, y: totalHeight }, { x: tentPixels, y: totalHeight }, { x: totalWidth, y: totalHeight }
+  // 20x80 configuration  
+  const totalWidth2080 = 80 * SCALE;
+  const totalHeight2080 = 20 * SCALE;
+
+  // Poles for 40x40 (3x3 grid)
+  const poles4040 = [
+    { x: 0, y: 0 }, { x: 20*SCALE, y: 0 }, { x: 40*SCALE, y: 0 },
+    { x: 0, y: 20*SCALE }, { x: 20*SCALE, y: 20*SCALE }, { x: 40*SCALE, y: 20*SCALE },
+    { x: 0, y: 40*SCALE }, { x: 20*SCALE, y: 40*SCALE }, { x: 40*SCALE, y: 40*SCALE }
   ];
 
-  // Tent boundaries
-  const tents = [
-    { x: 0, y: 0, label: "Tent 1" },
-    { x: tentPixels, y: 0, label: "Tent 2" },
-    { x: 0, y: tentPixels, label: "Tent 3" },
-    { x: tentPixels, y: tentPixels, label: "Tent 4" }
+  // Poles for 20x80 (5x2 grid)
+  const poles2080 = [
+    { x: 0, y: 0 }, { x: 20*SCALE, y: 0 }, { x: 40*SCALE, y: 0 }, { x: 60*SCALE, y: 0 }, { x: 80*SCALE, y: 0 },
+    { x: 0, y: 20*SCALE }, { x: 20*SCALE, y: 20*SCALE }, { x: 40*SCALE, y: 20*SCALE }, { x: 60*SCALE, y: 20*SCALE }, { x: 80*SCALE, y: 20*SCALE }
   ];
 
-  // Calculate optimal positions for 13 tables in 40x40 space
-  const NUM_TABLES = 13;
-  const CLEARANCE = 2.5; // Minimum clearance between table edges
-  const POLE_CLEARANCE = 4; // Clearance needed from poles
-  
-  const generateTablePositions = () => {
-    const positions = [];
-    const tableSpacing = TABLE_DIAMETER + CLEARANCE;
-    
-    // Try different arrangements to fit 13 tables optimally
-    // Arrangement: 4x3 grid + 1 center table
-    const gridPositions = [
-      // Row 1
-      { x: 1 * tableSpacing, y: 1 * tableSpacing },
-      { x: 2 * tableSpacing, y: 1 * tableSpacing },
-      { x: 3 * tableSpacing, y: 1 * tableSpacing },
-      { x: 4 * tableSpacing, y: 1 * tableSpacing },
-      
-      // Row 2 (offset for better fit)
-      { x: 0.5 * tableSpacing, y: 2 * tableSpacing },
-      { x: 1.5 * tableSpacing, y: 2 * tableSpacing },
-      { x: 2.5 * tableSpacing, y: 2 * tableSpacing },
-      { x: 3.5 * tableSpacing, y: 2 * tableSpacing },
-      { x: 4.5 * tableSpacing, y: 2 * tableSpacing },
-      
-      // Row 3
-      { x: 1 * tableSpacing, y: 3 * tableSpacing },
-      { x: 2 * tableSpacing, y: 3 * tableSpacing },
-      { x: 3 * tableSpacing, y: 3 * tableSpacing },
-      { x: 4 * tableSpacing, y: 3 * tableSpacing },
-    ];
-    
-    // Convert to pixel positions and check bounds
-    return gridPositions.slice(0, NUM_TABLES).map((pos, index) => {
-      const pixelX = pos.x * SCALE;
-      const pixelY = pos.y * SCALE;
-      
-      // Ensure tables stay within bounds
-      const clampedX = Math.max(tableRadius + 10, Math.min(totalWidth - tableRadius - 10, pixelX));
-      const clampedY = Math.max(tableRadius + 10, Math.min(totalHeight - tableRadius - 10, pixelY));
-      
-      return {
-        x: clampedX,
-        y: clampedY,
-        id: index + 1
-      };
-    });
-  };
+  // Initial table positions for 40x40
+  const initialLargeTables4040 = Array.from({ length: 12 }, (_, i) => ({
+    x: 50 + (i % 4) * 80,
+    y: 50 + Math.floor(i / 4) * 80,
+    id: i + 1,
+    type: 'large' as const
+  }));
 
-  const tables = generateTablePositions();
+  const initialSmallTables4040 = Array.from({ length: 10 }, (_, i) => ({
+    x: 30 + (i % 5) * 60,
+    y: 30 + Math.floor(i / 5) * 150,
+    id: i + 1,
+    type: 'small' as const
+  }));
 
-  // State for draggable table positions
-  const [tablePositions, setTablePositions] = useState(tables);
-  const [draggedTable, setDraggedTable] = useState<number | null>(null);
+  // Initial table positions for 20x80
+  const initialLargeTables2080 = Array.from({ length: 8 }, (_, i) => ({
+    x: 40 + i * 80,
+    y: 80,
+    id: i + 1,
+    type: 'large' as const
+  }));
+
+  const initialSmallTables2080 = Array.from({ length: 6 }, (_, i) => ({
+    x: 60 + i * 100,
+    y: 40,
+    id: i + 1,
+    type: 'small' as const
+  }));
+
+  // State
+  const [largeTables4040, setLargeTables4040] = useState(initialLargeTables4040);
+  const [smallTables4040, setSmallTables4040] = useState(initialSmallTables4040);
+  const [largeTables2080, setLargeTables2080] = useState(initialLargeTables2080);
+  const [smallTables2080, setSmallTables2080] = useState(initialSmallTables2080);
+  const [draggedTable, setDraggedTable] = useState<{id: number, type: 'large' | 'small', config: '4040' | '2080'} | null>(null);
 
   // Drag handlers
-  const handleMouseDown = (tableId: number, event: React.MouseEvent) => {
+  const handleMouseDown = (tableId: number, tableType: 'large' | 'small', config: '4040' | '2080', event: React.MouseEvent) => {
     event.preventDefault();
-    setDraggedTable(tableId);
+    setDraggedTable({ id: tableId, type: tableType, config });
   };
 
-  const handleMouseMove = (event: React.MouseEvent) => {
-    if (draggedTable === null) return;
+  const handleMouseMove = (event: React.MouseEvent, config: '4040' | '2080') => {
+    if (draggedTable === null || draggedTable.config !== config) return;
     
     const svg = event.currentTarget as SVGSVGElement;
     const rect = svg.getBoundingClientRect();
-    const scaleX = (totalWidth + 40) / rect.width;
-    const scaleY = (totalHeight + 40) / rect.height;
+    
+    let scaleX, scaleY, maxWidth, maxHeight;
+    if (config === '4040') {
+      scaleX = (totalWidth4040 + 40) / rect.width;
+      scaleY = (totalHeight4040 + 40) / rect.height;
+      maxWidth = totalWidth4040;
+      maxHeight = totalHeight4040;
+    } else {
+      scaleX = (totalWidth2080 + 40) / rect.width;
+      scaleY = (totalHeight2080 + 40) / rect.height;
+      maxWidth = totalWidth2080;
+      maxHeight = totalHeight2080;
+    }
     
     const x = (event.clientX - rect.left) * scaleX - 20;
     const y = (event.clientY - rect.top) * scaleY - 20;
     
-    // Keep tables within bounds
-    const clampedX = Math.max(tableRadius, Math.min(totalWidth - tableRadius, x));
-    const clampedY = Math.max(tableRadius, Math.min(totalHeight - tableRadius, y));
+    const radius = draggedTable.type === 'large' ? tableRadius : smallTableRadius;
+    const clampedX = Math.max(radius, Math.min(maxWidth - radius, x));
+    const clampedY = Math.max(radius, Math.min(maxHeight - radius, y));
     
-    setTablePositions(prev => prev.map(table => 
-      table.id === draggedTable 
-        ? { ...table, x: clampedX, y: clampedY }
-        : table
-    ));
+    if (config === '4040') {
+      if (draggedTable.type === 'large') {
+        setLargeTables4040(prev => prev.map(table => 
+          table.id === draggedTable.id ? { ...table, x: clampedX, y: clampedY } : table
+        ));
+      } else {
+        setSmallTables4040(prev => prev.map(table => 
+          table.id === draggedTable.id ? { ...table, x: clampedX, y: clampedY } : table
+        ));
+      }
+    } else {
+      if (draggedTable.type === 'large') {
+        setLargeTables2080(prev => prev.map(table => 
+          table.id === draggedTable.id ? { ...table, x: clampedX, y: clampedY } : table
+        ));
+      } else {
+        setSmallTables2080(prev => prev.map(table => 
+          table.id === draggedTable.id ? { ...table, x: clampedX, y: clampedY } : table
+        ));
+      }
+    }
   };
 
   const handleMouseUp = () => {
     setDraggedTable(null);
   };
 
-  // Check if all tables fit properly
-  const checkTablesFit = () => {
-    // Check if tables are within bounds
-    const withinBounds = tablePositions.every(table => 
-      table.x - tableRadius >= 0 && 
-      table.x + tableRadius <= totalWidth &&
-      table.y - tableRadius >= 0 && 
-      table.y + tableRadius <= totalHeight
-    );
-    
-    // Check minimum distance from poles
-    const clearFromPoles = tablePositions.every(table =>
-      poles.every(pole => {
-        const distance = Math.sqrt(Math.pow(table.x - pole.x, 2) + Math.pow(table.y - pole.y, 2));
-        return distance >= tableRadius + POLE_CLEARANCE * SCALE;
-      })
-    );
-    
-    // Check table-to-table spacing
-    const adequateSpacing = tablePositions.every((table, i) =>
-      tablePositions.every((otherTable, j) => {
-        if (i === j) return true;
-        const distance = Math.sqrt(Math.pow(table.x - otherTable.x, 2) + Math.pow(table.y - otherTable.y, 2));
-        return distance >= (tableRadius * 2) + (CLEARANCE * SCALE);
-      })
-    );
-    
-    return withinBounds && clearFromPoles && adequateSpacing;
-  };
+  const renderTables = (largeTables: any[], smallTables: any[], config: '4040' | '2080') => (
+    <>
+      {/* Large tables */}
+      {largeTables.map((table) => (
+        <g key={`large-${table.id}`}>
+          <circle
+            cx={table.x}
+            cy={table.y}
+            r={tableRadius}
+            fill="rgba(34, 197, 94, 0.2)"
+            stroke="#22c55e"
+            strokeWidth="2"
+            className="cursor-pointer hover:fill-green-300 hover:stroke-green-600 transition-colors"
+            onMouseDown={(e) => handleMouseDown(table.id, 'large', config, e)}
+          />
+          <text
+            x={table.x}
+            y={table.y}
+            textAnchor="middle"
+            className="fill-green-700 dark:fill-green-300 font-medium text-xs pointer-events-none"
+            dy="0.35em"
+          >
+            {table.id}
+          </text>
+        </g>
+      ))}
+      
+      {/* Small tables */}
+      {smallTables.map((table) => (
+        <g key={`small-${table.id}`}>
+          <circle
+            cx={table.x}
+            cy={table.y}
+            r={smallTableRadius}
+            fill="rgba(168, 85, 247, 0.2)"
+            stroke="#a855f7"
+            strokeWidth="2"
+            className="cursor-pointer hover:fill-purple-300 hover:stroke-purple-600 transition-colors"
+            onMouseDown={(e) => handleMouseDown(table.id, 'small', config, e)}
+          />
+          <text
+            x={table.x}
+            y={table.y}
+            textAnchor="middle"
+            className="fill-purple-700 dark:fill-purple-300 font-medium text-xs pointer-events-none"
+            dy="0.35em"
+          >
+            {table.id}
+          </text>
+        </g>
+      ))}
+    </>
+  );
 
-  const tablesFit = checkTablesFit();
-  const totalTableArea = NUM_TABLES * Math.PI * Math.pow(TABLE_DIAMETER/2, 2);
-  const totalTentArea = 40 * 40;
-  const areaUtilization = (totalTableArea / totalTentArea) * 100;
+  const renderPoles = (poles: any[]) => (
+    <>
+      {poles.map((pole, index) => (
+        <g key={index}>
+          <circle
+            cx={pole.x}
+            cy={pole.y}
+            r={POLE_RADIUS}
+            fill="#dc2626"
+            stroke="#991b1b"
+            strokeWidth="1"
+          />
+          <circle
+            cx={pole.x}
+            cy={pole.y}
+            r={POLE_RADIUS + 2}
+            fill="none"
+            stroke="#dc2626"
+            strokeWidth="1"
+            opacity="0.3"
+          />
+        </g>
+      ))}
+    </>
+  );
 
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Diagram */}
-        <Card className="col-span-1">
+        {/* 40x40 Configuration */}
+        <Card>
           <CardHeader>
-            <CardTitle>Tent Layout Planner</CardTitle>
+            <CardTitle>40×40ft Tent Configuration</CardTitle>
             <CardDescription>
-              4 × 20×20ft tents arranged in 40×40ft configuration
+              12 × 72" round tables + 10 × 32" cocktail tables
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-lg border">
-                <svg 
-                  viewBox={`-20 -20 ${totalWidth + 40} ${totalHeight + 40}`}
-                  className="w-full h-auto max-w-lg mx-auto cursor-crosshair"
-                  onMouseMove={handleMouseMove}
-                  onMouseUp={handleMouseUp}
-                  onMouseLeave={handleMouseUp}
-                >
-                {/* Grid lines for measurement */}
+              <svg 
+                viewBox={`-20 -20 ${totalWidth4040 + 40} ${totalHeight4040 + 40}`}
+                className="w-full h-auto max-w-lg mx-auto cursor-crosshair"
+                onMouseMove={(e) => handleMouseMove(e, '4040')}
+                onMouseUp={handleMouseUp}
+                onMouseLeave={handleMouseUp}
+              >
+                {/* Grid background */}
                 <defs>
-                  <pattern id="grid" width={SCALE * 5} height={SCALE * 5} patternUnits="userSpaceOnUse">
+                  <pattern id="grid4040" width={SCALE * 5} height={SCALE * 5} patternUnits="userSpaceOnUse">
                     <path d={`M ${SCALE * 5} 0 L 0 0 0 ${SCALE * 5}`} fill="none" stroke="#e2e8f0" strokeWidth="0.5"/>
                   </pattern>
                 </defs>
-                <rect x={-10} y={-10} width={totalWidth + 20} height={totalHeight + 20} fill="url(#grid)" />
+                <rect x={-10} y={-10} width={totalWidth4040 + 20} height={totalHeight4040 + 20} fill="url(#grid4040)" />
                 
-                {/* Overall tent boundary */}
+                {/* Tent boundary */}
                 <rect
                   x={0}
                   y={0}
-                  width={totalWidth}
-                  height={totalHeight}
+                  width={totalWidth4040}
+                  height={totalHeight4040}
                   fill="rgba(59, 130, 246, 0.05)"
                   stroke="#3b82f6"
                   strokeWidth="2"
                   strokeDasharray="8,4"
                 />
 
-                {/* Poles */}
-                {poles.map((pole, index) => (
-                  <g key={index}>
-                    <circle
-                      cx={pole.x}
-                      cy={pole.y}
-                      r={POLE_RADIUS}
-                      fill="#dc2626"
-                      stroke="#991b1b"
-                      strokeWidth="1"
-                    />
-                    <circle
-                      cx={pole.x}
-                      cy={pole.y}
-                      r={POLE_RADIUS + 2}
-                      fill="none"
-                      stroke="#dc2626"
-                      strokeWidth="1"
-                      opacity="0.3"
-                    />
-                  </g>
-                ))}
-
-                {/* Round tables */}
-                {tablePositions.map((table) => (
-                  <g key={table.id}>
-                    <circle
-                      cx={table.x}
-                      cy={table.y}
-                      r={tableRadius}
-                      fill="rgba(34, 197, 94, 0.2)"
-                      stroke="#22c55e"
-                      strokeWidth="2"
-                      className="cursor-pointer hover:fill-green-300 hover:stroke-green-600 transition-colors"
-                      onMouseDown={(e) => handleMouseDown(table.id, e)}
-                    />
-                    <text
-                      x={table.x}
-                      y={table.y}
-                      textAnchor="middle"
-                      className="fill-green-700 dark:fill-green-300 font-medium text-xs pointer-events-none"
-                      dy="0.35em"
-                    >
-                      {table.id}
-                    </text>
-                  </g>
-                ))}
+                {renderPoles(poles4040)}
+                {renderTables(largeTables4040, smallTables4040, '4040')}
 
                 {/* Measurements */}
                 <g className="text-xs fill-muted-foreground">
-                  {/* Top measurement */}
-                  <line x1={0} y1={-10} x2={totalWidth} y2={-10} stroke="#6b7280" strokeWidth="1" markerEnd="url(#arrowhead)" markerStart="url(#arrowhead)"/>
-                  <text x={totalWidth / 2} y={-15} textAnchor="middle">40ft</text>
-                  
-                  {/* Side measurement */}
-                  <line x1={-10} y1={0} x2={-10} y2={totalHeight} stroke="#6b7280" strokeWidth="1" markerEnd="url(#arrowhead)" markerStart="url(#arrowhead)"/>
-                  <text x={-15} y={totalHeight / 2} textAnchor="middle" transform={`rotate(-90, -15, ${totalHeight / 2})`}>40ft</text>
+                  <line x1={0} y1={-10} x2={totalWidth4040} y2={-10} stroke="#6b7280" strokeWidth="1"/>
+                  <text x={totalWidth4040 / 2} y={-15} textAnchor="middle">40ft</text>
+                  <line x1={-10} y1={0} x2={-10} y2={totalHeight4040} stroke="#6b7280" strokeWidth="1"/>
+                  <text x={-15} y={totalHeight4040 / 2} textAnchor="middle" transform={`rotate(-90, -15, ${totalHeight4040 / 2})`}>40ft</text>
                 </g>
-
-                {/* Arrow markers */}
-                <defs>
-                  <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-                    <polygon points="0 0, 10 3.5, 0 7" fill="#6b7280" />
-                  </marker>
-                </defs>
               </svg>
             </div>
           </CardContent>
         </Card>
 
-        {/* Specifications */}
+        {/* 20x80 Configuration */}
         <Card>
           <CardHeader>
-            <CardTitle>Layout Specifications</CardTitle>
-            <CardDescription>Detailed measurements and fit analysis</CardDescription>
+            <CardTitle>20×80ft Tent Configuration</CardTitle>
+            <CardDescription>
+              8 × 72" round tables + 6 × 32" cocktail tables
+            </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <h4 className="font-medium text-sm text-muted-foreground">TENT CONFIGURATION</h4>
-                <div className="space-y-1">
-                  <div className="flex justify-between">
-                    <span className="text-sm">Individual tent:</span>
-                    <Badge variant="outline">20×20 ft</Badge>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm">Total coverage:</span>
-                    <Badge variant="outline">40×40 ft</Badge>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm">Total area:</span>
-                    <Badge variant="outline">1,600 ft²</Badge>
-                  </div>
-                </div>
-              </div>
+          <CardContent>
+            <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-lg border">
+              <svg 
+                viewBox={`-20 -20 ${totalWidth2080 + 40} ${totalHeight2080 + 40}`}
+                className="w-full h-auto max-w-2xl mx-auto cursor-crosshair"
+                onMouseMove={(e) => handleMouseMove(e, '2080')}
+                onMouseUp={handleMouseUp}
+                onMouseLeave={handleMouseUp}
+              >
+                {/* Grid background */}
+                <defs>
+                  <pattern id="grid2080" width={SCALE * 5} height={SCALE * 5} patternUnits="userSpaceOnUse">
+                    <path d={`M ${SCALE * 5} 0 L 0 0 0 ${SCALE * 5}`} fill="none" stroke="#e2e8f0" strokeWidth="0.5"/>
+                  </pattern>
+                </defs>
+                <rect x={-10} y={-10} width={totalWidth2080 + 20} height={totalHeight2080 + 20} fill="url(#grid2080)" />
+                
+                {/* Tent boundary */}
+                <rect
+                  x={0}
+                  y={0}
+                  width={totalWidth2080}
+                  height={totalHeight2080}
+                  fill="rgba(59, 130, 246, 0.05)"
+                  stroke="#3b82f6"
+                  strokeWidth="2"
+                  strokeDasharray="8,4"
+                />
 
-              <div className="space-y-2">
-                <h4 className="font-medium text-sm text-muted-foreground">POLE LAYOUT</h4>
-                <div className="space-y-1">
-                  <div className="flex justify-between">
-                    <span className="text-sm">Total poles:</span>
-                    <Badge variant="secondary">9 poles</Badge>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm">Shared poles:</span>
-                    <Badge variant="secondary">7 shared</Badge>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm">Pattern:</span>
-                    <Badge variant="secondary">3×3 grid</Badge>
-                  </div>
-                </div>
-              </div>
-            </div>
+                {renderPoles(poles2080)}
+                {renderTables(largeTables2080, smallTables2080, '2080')}
 
-            <div className="bg-muted p-3 rounded-lg">
-              <p className="text-sm text-muted-foreground">
-                <span className="font-medium">Layout Info:</span> 40×40ft tent configuration with {NUM_TABLES} draggable 72" round tables. Drag tables to arrange as needed.
-              </p>
+                {/* Measurements */}
+                <g className="text-xs fill-muted-foreground">
+                  <line x1={0} y1={-10} x2={totalWidth2080} y2={-10} stroke="#6b7280" strokeWidth="1"/>
+                  <text x={totalWidth2080 / 2} y={-15} textAnchor="middle">80ft</text>
+                  <line x1={-10} y1={0} x2={-10} y2={totalHeight2080} stroke="#6b7280" strokeWidth="1"/>
+                  <text x={-15} y={totalHeight2080 / 2} textAnchor="middle" transform={`rotate(-90, -15, ${totalHeight2080 / 2})`}>20ft</text>
+                </g>
+              </svg>
             </div>
           </CardContent>
         </Card>
@@ -321,7 +321,7 @@ export const TentGridPlanner = () => {
           <CardTitle className="text-lg">Legend</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 border-2 border-blue-500 border-dashed bg-blue-100 dark:bg-blue-900/20"></div>
               <span className="text-sm">Tent boundary</span>
@@ -333,6 +333,10 @@ export const TentGridPlanner = () => {
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 border-2 border-green-500 bg-green-200 dark:bg-green-900/20 rounded-full"></div>
               <span className="text-sm">72" round tables</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 border-2 border-purple-500 bg-purple-200 dark:bg-purple-900/20 rounded-full"></div>
+              <span className="text-sm">32" cocktail tables</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-4 h-1 bg-gray-400"></div>
