@@ -31,35 +31,60 @@ export const TentGridPlanner = () => {
     { x: 0, y: 20*SCALE }, { x: 20*SCALE, y: 20*SCALE }, { x: 40*SCALE, y: 20*SCALE }, { x: 60*SCALE, y: 20*SCALE }, { x: 80*SCALE, y: 20*SCALE }
   ];
 
-  // Initial table positions for 40x40
-  const initialLargeTables4040 = Array.from({ length: 12 }, (_, i) => ({
-    x: 50 + (i % 4) * 80,
-    y: 50 + Math.floor(i / 4) * 80,
-    id: i + 1,
-    type: 'large' as const
-  }));
+  // Initial table positions for 40x40 - 12 large tables
+  const initialLargeTables4040 = [
+    // Row 1 - 4 tables
+    { x: 60, y: 60, id: 1, type: 'large' as const },
+    { x: 140, y: 60, id: 2, type: 'large' as const },
+    { x: 220, y: 60, id: 3, type: 'large' as const },
+    { x: 300, y: 60, id: 4, type: 'large' as const },
+    // Row 2 - 4 tables
+    { x: 60, y: 160, id: 5, type: 'large' as const },
+    { x: 140, y: 160, id: 6, type: 'large' as const },
+    { x: 220, y: 160, id: 7, type: 'large' as const },
+    { x: 300, y: 160, id: 8, type: 'large' as const },
+    // Row 3 - 4 tables
+    { x: 60, y: 260, id: 9, type: 'large' as const },
+    { x: 140, y: 260, id: 10, type: 'large' as const },
+    { x: 220, y: 260, id: 11, type: 'large' as const },
+    { x: 300, y: 260, id: 12, type: 'large' as const },
+  ];
 
-  const initialSmallTables4040 = Array.from({ length: 10 }, (_, i) => ({
-    x: 30 + (i % 5) * 60,
-    y: 30 + Math.floor(i / 5) * 150,
-    id: i + 1,
-    type: 'small' as const
-  }));
+  // Initial small table positions for 40x40 - 10 cocktail tables
+  const initialSmallTables4040 = [
+    { x: 40, y: 40, id: 1, type: 'small' as const },
+    { x: 120, y: 40, id: 2, type: 'small' as const },
+    { x: 200, y: 40, id: 3, type: 'small' as const },
+    { x: 280, y: 40, id: 4, type: 'small' as const },
+    { x: 40, y: 120, id: 5, type: 'small' as const },
+    { x: 320, y: 120, id: 6, type: 'small' as const },
+    { x: 40, y: 200, id: 7, type: 'small' as const },
+    { x: 320, y: 200, id: 8, type: 'small' as const },
+    { x: 200, y: 300, id: 9, type: 'small' as const },
+    { x: 280, y: 300, id: 10, type: 'small' as const },
+  ];
 
-  // Initial table positions for 20x80
-  const initialLargeTables2080 = Array.from({ length: 8 }, (_, i) => ({
-    x: 40 + i * 80,
-    y: 80,
-    id: i + 1,
-    type: 'large' as const
-  }));
+  // Initial table positions for 20x80 - 8 large tables
+  const initialLargeTables2080 = [
+    { x: 60, y: 80, id: 1, type: 'large' as const },
+    { x: 140, y: 80, id: 2, type: 'large' as const },
+    { x: 220, y: 80, id: 3, type: 'large' as const },
+    { x: 300, y: 80, id: 4, type: 'large' as const },
+    { x: 380, y: 80, id: 5, type: 'large' as const },
+    { x: 460, y: 80, id: 6, type: 'large' as const },
+    { x: 540, y: 80, id: 7, type: 'large' as const },
+    { x: 620, y: 80, id: 8, type: 'large' as const },
+  ];
 
-  const initialSmallTables2080 = Array.from({ length: 6 }, (_, i) => ({
-    x: 60 + i * 100,
-    y: 40,
-    id: i + 1,
-    type: 'small' as const
-  }));
+  // Initial small table positions for 20x80 - 6 cocktail tables
+  const initialSmallTables2080 = [
+    { x: 100, y: 40, id: 1, type: 'small' as const },
+    { x: 200, y: 40, id: 2, type: 'small' as const },
+    { x: 300, y: 40, id: 3, type: 'small' as const },
+    { x: 400, y: 40, id: 4, type: 'small' as const },
+    { x: 500, y: 40, id: 5, type: 'small' as const },
+    { x: 600, y: 40, id: 6, type: 'small' as const },
+  ];
 
   // State
   const [largeTables4040, setLargeTables4040] = useState(initialLargeTables4040);
@@ -209,111 +234,110 @@ export const TentGridPlanner = () => {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* 40x40 Configuration */}
-        <Card>
-          <CardHeader>
-            <CardTitle>40×40ft Tent Configuration</CardTitle>
-            <CardDescription>
-              12 × 72" round tables + 10 × 32" cocktail tables
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-lg border">
-              <svg 
-                viewBox={`-20 -20 ${totalWidth4040 + 40} ${totalHeight4040 + 40}`}
-                className="w-full h-auto max-w-lg mx-auto cursor-crosshair"
-                onMouseMove={(e) => handleMouseMove(e, '4040')}
-                onMouseUp={handleMouseUp}
-                onMouseLeave={handleMouseUp}
-              >
-                {/* Grid background */}
-                <defs>
-                  <pattern id="grid4040" width={SCALE * 5} height={SCALE * 5} patternUnits="userSpaceOnUse">
-                    <path d={`M ${SCALE * 5} 0 L 0 0 0 ${SCALE * 5}`} fill="none" stroke="#e2e8f0" strokeWidth="0.5"/>
-                  </pattern>
-                </defs>
-                <rect x={-10} y={-10} width={totalWidth4040 + 20} height={totalHeight4040 + 20} fill="url(#grid4040)" />
-                
-                {/* Tent boundary */}
-                <rect
-                  x={0}
-                  y={0}
-                  width={totalWidth4040}
-                  height={totalHeight4040}
-                  fill="rgba(59, 130, 246, 0.05)"
-                  stroke="#3b82f6"
-                  strokeWidth="2"
-                  strokeDasharray="8,4"
-                />
+      {/* 40x40 Configuration */}
+      <Card>
+        <CardHeader>
+          <CardTitle>40×40ft Tent Configuration</CardTitle>
+          <CardDescription>
+            12 × 72" round tables + 10 × 32" cocktail tables
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-lg border">
+            <svg 
+              viewBox={`-20 -20 ${totalWidth4040 + 40} ${totalHeight4040 + 40}`}
+              className="w-full h-auto max-w-2xl mx-auto cursor-crosshair"
+              onMouseMove={(e) => handleMouseMove(e, '4040')}
+              onMouseUp={handleMouseUp}
+              onMouseLeave={handleMouseUp}
+            >
+              {/* Grid background */}
+              <defs>
+                <pattern id="grid4040" width={SCALE * 5} height={SCALE * 5} patternUnits="userSpaceOnUse">
+                  <path d={`M ${SCALE * 5} 0 L 0 0 0 ${SCALE * 5}`} fill="none" stroke="#e2e8f0" strokeWidth="0.5"/>
+                </pattern>
+              </defs>
+              <rect x={-10} y={-10} width={totalWidth4040 + 20} height={totalHeight4040 + 20} fill="url(#grid4040)" />
+              
+              {/* Tent boundary */}
+              <rect
+                x={0}
+                y={0}
+                width={totalWidth4040}
+                height={totalHeight4040}
+                fill="rgba(59, 130, 246, 0.05)"
+                stroke="#3b82f6"
+                strokeWidth="2"
+                strokeDasharray="8,4"
+              />
 
-                {renderPoles(poles4040)}
-                {renderTables(largeTables4040, smallTables4040, '4040')}
+              {renderPoles(poles4040)}
+              {renderTables(largeTables4040, smallTables4040, '4040')}
 
-                {/* Measurements */}
-                <g className="text-xs fill-muted-foreground">
-                  <line x1={0} y1={-10} x2={totalWidth4040} y2={-10} stroke="#6b7280" strokeWidth="1"/>
-                  <text x={totalWidth4040 / 2} y={-15} textAnchor="middle">40ft</text>
-                  <line x1={-10} y1={0} x2={-10} y2={totalHeight4040} stroke="#6b7280" strokeWidth="1"/>
-                  <text x={-15} y={totalHeight4040 / 2} textAnchor="middle" transform={`rotate(-90, -15, ${totalHeight4040 / 2})`}>40ft</text>
-                </g>
-              </svg>
-            </div>
-          </CardContent>
-        </Card>
+              {/* Measurements */}
+              <g className="text-xs fill-muted-foreground">
+                <line x1={0} y1={-10} x2={totalWidth4040} y2={-10} stroke="#6b7280" strokeWidth="1"/>
+                <text x={totalWidth4040 / 2} y={-15} textAnchor="middle">40ft</text>
+                <line x1={-10} y1={0} x2={-10} y2={totalHeight4040} stroke="#6b7280" strokeWidth="1"/>
+                <text x={-15} y={totalHeight4040 / 2} textAnchor="middle" transform={`rotate(-90, -15, ${totalHeight4040 / 2})`}>40ft</text>
+              </g>
+            </svg>
+          </div>
+        </CardContent>
+      </Card>
 
-        {/* 20x80 Configuration */}
-        <Card>
-          <CardHeader>
-            <CardTitle>20×80ft Tent Configuration</CardTitle>
-            <CardDescription>
-              8 × 72" round tables + 6 × 32" cocktail tables
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-lg border">
-              <svg 
-                viewBox={`-20 -20 ${totalWidth2080 + 40} ${totalHeight2080 + 40}`}
-                className="w-full h-auto max-w-2xl mx-auto cursor-crosshair"
-                onMouseMove={(e) => handleMouseMove(e, '2080')}
-                onMouseUp={handleMouseUp}
-                onMouseLeave={handleMouseUp}
-              >
-                {/* Grid background */}
-                <defs>
-                  <pattern id="grid2080" width={SCALE * 5} height={SCALE * 5} patternUnits="userSpaceOnUse">
-                    <path d={`M ${SCALE * 5} 0 L 0 0 0 ${SCALE * 5}`} fill="none" stroke="#e2e8f0" strokeWidth="0.5"/>
-                  </pattern>
-                </defs>
-                <rect x={-10} y={-10} width={totalWidth2080 + 20} height={totalHeight2080 + 20} fill="url(#grid2080)" />
-                
-                {/* Tent boundary */}
-                <rect
-                  x={0}
-                  y={0}
-                  width={totalWidth2080}
-                  height={totalHeight2080}
-                  fill="rgba(59, 130, 246, 0.05)"
-                  stroke="#3b82f6"
-                  strokeWidth="2"
-                  strokeDasharray="8,4"
-                />
+      {/* 20x80 Configuration - Larger */}
+      <Card>
+        <CardHeader>
+          <CardTitle>20×80ft Tent Configuration</CardTitle>
+          <CardDescription>
+            8 × 72" round tables + 6 × 32" cocktail tables
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-lg border">
+            <svg 
+              viewBox={`-20 -20 ${totalWidth2080 + 40} ${totalHeight2080 + 40}`}
+              className="w-full h-auto cursor-crosshair"
+              style={{ minHeight: '300px' }}
+              onMouseMove={(e) => handleMouseMove(e, '2080')}
+              onMouseUp={handleMouseUp}
+              onMouseLeave={handleMouseUp}
+            >
+              {/* Grid background */}
+              <defs>
+                <pattern id="grid2080" width={SCALE * 5} height={SCALE * 5} patternUnits="userSpaceOnUse">
+                  <path d={`M ${SCALE * 5} 0 L 0 0 0 ${SCALE * 5}`} fill="none" stroke="#e2e8f0" strokeWidth="0.5"/>
+                </pattern>
+              </defs>
+              <rect x={-10} y={-10} width={totalWidth2080 + 20} height={totalHeight2080 + 20} fill="url(#grid2080)" />
+              
+              {/* Tent boundary */}
+              <rect
+                x={0}
+                y={0}
+                width={totalWidth2080}
+                height={totalHeight2080}
+                fill="rgba(59, 130, 246, 0.05)"
+                stroke="#3b82f6"
+                strokeWidth="2"
+                strokeDasharray="8,4"
+              />
 
-                {renderPoles(poles2080)}
-                {renderTables(largeTables2080, smallTables2080, '2080')}
+              {renderPoles(poles2080)}
+              {renderTables(largeTables2080, smallTables2080, '2080')}
 
-                {/* Measurements */}
-                <g className="text-xs fill-muted-foreground">
-                  <line x1={0} y1={-10} x2={totalWidth2080} y2={-10} stroke="#6b7280" strokeWidth="1"/>
-                  <text x={totalWidth2080 / 2} y={-15} textAnchor="middle">80ft</text>
-                  <line x1={-10} y1={0} x2={-10} y2={totalHeight2080} stroke="#6b7280" strokeWidth="1"/>
-                  <text x={-15} y={totalHeight2080 / 2} textAnchor="middle" transform={`rotate(-90, -15, ${totalHeight2080 / 2})`}>20ft</text>
-                </g>
-              </svg>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+              {/* Measurements */}
+              <g className="text-xs fill-muted-foreground">
+                <line x1={0} y1={-10} x2={totalWidth2080} y2={-10} stroke="#6b7280" strokeWidth="1"/>
+                <text x={totalWidth2080 / 2} y={-15} textAnchor="middle">80ft</text>
+                <line x1={-10} y1={0} x2={-10} y2={totalHeight2080} stroke="#6b7280" strokeWidth="1"/>
+                <text x={-15} y={totalHeight2080 / 2} textAnchor="middle" transform={`rotate(-90, -15, ${totalHeight2080 / 2})`}>20ft</text>
+              </g>
+            </svg>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Legend */}
       <Card>
